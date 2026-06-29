@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WORXIN Configurator</title>
+    <!-- 引入炫酷的暗黑风字体和截图插件 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <style>
+        /* 营造“身临其境”的炫酷赛博/工业暗黑风 */
+        body { background: #0d0d0d; color: #fff; font-family: 'Arial', sans-serif; padding: 20px; }
+        .config-container { max-width: 600px; margin: 0 auto; background: #1a1a1a; padding: 25px; border-radius: 15px; border: 1px solid #333; box-shadow: 0px 0px 20px rgba(0,255,200,0.1); }
+        h2 { color: #00ffc8; text-transform: uppercase; letter-spacing: 2px; }
+        .module { margin-bottom: 20px; border-bottom: 1px solid #222; padding-bottom: 15px; }
+        label { display: block; margin: 10px 0 5px; font-weight: bold; color: #aaa; }
+        select, input { width: 100%; padding: 12px; background: #262626; border: 1px solid #444; color: #fff; border-radius: 8px; }
+        select:focus { border-color: #00ffc8; outline: none; }
+        .total-price { font-size: 24px; color: #00ffc8; margin: 20px 0; text-align: right; font-weight: bold; }
+        .btn-action { width: 100%; padding: 15px; background: linear-gradient(45deg, #00ffc8, #0088cc); border: none; color: #000; font-weight: bold; font-size: 16px; border-radius: 8px; cursor: pointer; margin-top: 10px; transition: 0.3s; }
+        .btn-action:hover { transform: scale(1.02); box-shadow: 0 0 15px rgba(0,255,200,0.4); }
+        .whatsapp-btn { background: #25D366; color: white; text-align: center; display: block; text-decoration: none; border-radius: 8px; padding: 15px; font-weight: bold; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="config-container" id="capture-area">
+    <h2>⚡ Electric Trike Configurator</h2>
+    <p style="color: #666; font-size: 12px;">Customize your utility e-trike and share with us on WhatsApp.</p>
+    
+    <!-- 1. 颜色 -->
+    <div class="module">
+        <label>1. Vehicle Color</label>
+        <select id="color" onchange="calculatePrice()">
+            <option value="Matte Black">Matte Black (Standard)</option>
+            <option value="Industrial Yellow">Industrial Yellow</option>
+            <option value="Tough Green">Tough Green</option>
+        </select>
+    </div>
+
+    <!-- 2. 电池 -->
+    <div class="module">
+        <label>2. Battery Options</label>
+        <select id="battery" onchange="calculatePrice()">
+            <option value="Lead-Acid" data-price="0">Lead-Acid Battery (Standard)</option>
+            <option value="Lithium" data-price="800">High-Performance Lithium Battery (+$800)</option>
+        </select>
+    </div>
+
+    <!-- 3. 轮胎 -->
+    <div class="module">
+        <label>3. Tires</label>
+        <select id="tires" onchange="calculatePrice()">
+            <option value="Standard" data-price="0">Standard Farm Tires</option>
+            <option value="All-Terrain" data-price="250">All-Terrain Off-Road Tires (+$250)</option>
+        </select>
+    </div>
+
+    <!-- 4. 加装配置 -->
+    <div class="module">
+        <label>4. Add-ons</label>
+        <select id="addons" onchange="calculatePrice()">
+            <option value="None" data-price="0">None</option>
+            <option value="Roof" data-price="150">Sunshade & Rain Roof (+$150)</option>
+            <option value="SnowPlow" data-price="400">Heavy Duty Snow Plow (+$400)</option>
+            <option value="Both" data-price="550">Roof + Snow Plow (+$550)</option>
+        </select>
+    </div>
+
+    <!-- 5. 地图与物流方式 -->
+    <div class="module">
+        <label>5. Delivery Location (Province)</label>
+        <!-- 简易免费地图替代方案：下拉选择，可嵌入免费Google Map -->
+        <select id="location" onchange="calculatePrice()">
+            <option value="ON" data-ship="300">Ontario</option>
+            <option value="BC" data-ship="500">British Columbia</option>
+            <option value="AB" data-ship="450">Alberta</option>
+        </select>
+
+        <label style="margin-top: 10px;">6. Logistics Method</label>
+        <select id="logistics" onchange="calculatePrice()">
+            <option value="Port" data-mod="0">Pick up at Port (Save Money)</option>
+            <option value="Home" data-mod="200">Door-to-Door Delivery (+$200)</option>
+        </select>
+    </div>
+
+    <!-- 基础价格定义在JS里 -->
+    <div class="total-price">Estimated Total: <span id="price-display">$2500</span> CAD</div>
+    
+    <!-- 功能按钮 -->
+    <button class="btn-action" onclick="takeScreenshot()">📸 1-Click Generate Order Image</button>
+    <a href="https://wa.me/你的WhatsApp号码?text=Hi,%20I%20just%20configured%20my%20trike!%20Sending%20the%20screenshot." target="_blank" class="whatsapp-btn">💬 Chat on WhatsApp to Order</a>
+</div>
+
+<script>
+function calculatePrice() {
+    let basePrice = 2500; // 假设基础车价
+    
+    // 获取各模块加价
+    let battery = parseFloat(document.getElementById('battery').selectedOptions[0].getAttribute('data-price'));
+    let tires = parseFloat(document.getElementById('tires').selectedOptions[0].getAttribute('data-price'));
+    let addons = parseFloat(document.getElementById('addons').selectedOptions[0].getAttribute('data-price'));
+    let shipBase = parseFloat(document.getElementById('location').selectedOptions[0].getAttribute('data-ship'));
+    let logisticsMod = parseFloat(document.getElementById('logistics').selectedOptions[0].getAttribute('data-mod'));
+    
+    let total = basePrice + battery + tires + addons + shipBase + logisticsMod;
+    document.getElementById('price-display').innerText = "$" + total;
+}
+
+function takeScreenshot() {
+    // 自动将配置单区域生成图片并下载
+    html2canvas(document.getElementById("capture-area")).then(canvas => {
+        let link = document.createElement('a');
+        link.download = 'my-trike-config.png';
+        link.href = canvas.toDataURL();
+        link.click();
+        alert("Order configuration saved as image! Please send it to us via WhatsApp.");
+    });
+}
+// 初始化算价
+calculatePrice();
+</script>
+
+</body>
+</html>
