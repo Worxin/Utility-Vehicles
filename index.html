@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WORXIN CANADA | Premium Electric Utility Trike Configurator</title>
+    <!-- 引入核心截图及图标库 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* -------------------------------------------------------------
+           1. 赛博工业暗黑风：全局核心样式与变量定义
+        ------------------------------------------------------------- */
+        :root {
+            --bg-main: #060709;
+            --bg-panel: #0d0f12;
+            --bg-item: #15181f;
+            --bg-item-hover: #1c212a;
+            --accent: #00ffc8;
+            --accent-rgb: 0, 255, 200;
+            --text-main: #ffffff;
+            --text-muted: #7f8c9d;
+            --border: #222731;
+            --whatsapp: #25D366;
+            --danger: #ff4d4d;
+            --panel-width: 480px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; overflow-x: hidden; display: flex; }
+
+        /* 隐藏滚动条但保持可滚动 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-main); }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent); }
+
+        /* -------------------------------------------------------------
+           2. 极致大屏骨架布局 (Polaris / Can-Am 级)
+        ------------------------------------------------------------- */
+        .app-container { display: flex; width: 100vw; height: 100vh; relative; overflow: hidden; }
+
+        /* 左侧：身临其境的主视觉舞台 */
+        .stage-view { flex: 1; height: 100%; position: relative; background: radial-gradient(circle at 50% 50%, #1a1e26 0%, #060709 100%); display: flex; justify-content: center; align-items: center; padding: 40px; overflow: hidden; }
+        
+        /* 顶级科技感：舞台光影地台效果 */
+        .stage-floor { position: absolute; bottom: 15%; width: 70%; height: 40px; background: radial-gradient(ellipse at center, rgba(var(--accent-rgb), 0.15) 0%, rgba(0,0,0,0) 70%); filter: blur(10px); pointer-events: none; }
+
+        /* 核心：多图层高精度绝对定位叠加画布 */
+        .canvas-container { position: relative; width: 100%; max-width: 750px; aspect-ratio: 4/3; display: flex; justify-content: center; align-items: center; z-index: 2; }
+        .layer { position: absolute; width: 100%; height: 100%; object-fit: contain; top: 0; left: 0; pointer-events: none; opacity: 1; transform: scale(1); transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94); }
+        .layer.hidden { opacity: 0; transform: scale(0.98); }
+
+        /* 顶部品牌条 */
+        .brand-header { position: absolute; top: 30px; left: 40px; z-index: 10; }
+        .brand-logo { font-size: 24px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: var(--text-main); }
+        .brand-logo span { color: var(--accent); }
+        .brand-badge { display: inline-block; padding: 4px 8px; background: rgba(var(--accent-rgb), 0.1); border: 1px solid var(--accent); color: var(--accent); font-size: 10px; font-weight: 700; border-radius: 4px; margin-left: 10px; vertical-align: middle; text-transform: uppercase; }
+
+        /* 左下角实时核心配置标签 */
+        .live-specs-badge { position: absolute; bottom: 30px; left: 40px; z-index: 10; background: rgba(13, 15, 18, 0.7); backdrop-filter: blur(10px); border: 1px solid var(--border); padding: 12px 20px; border-radius: 12px; display: flex; gap: 15px; font-size: 12px; color: var(--text-muted); }
+        .live-specs-badge strong { color: var(--text-main); }
+
+        /* 右侧：高度专业化的模块配置面板 */
+        .control-panel { width: var(--panel-width); height: 100%; background-color: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; position: relative; }
+        .panel-scroll-area { flex: 1; overflow-y: auto; padding: 40px 30px; }
+        
+        .panel-title { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 5px; }
+        .panel-subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 35px; line-height: 1.5; }
+
+        /* -------------------------------------------------------------
+           3. 高级工业级 UI 选项组件样式
+        ------------------------------------------------------------- */
+        .module-group { margin-bottom: 35px; }
+        .module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+        .module-title { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-muted); }
+        .module-selected-val { font-size: 12px; font-weight: 600; color: var(--accent); background: rgba(var(--accent-rgb), 0.05); padding: 2px 8px; border-radius: 4px; }
+
+        /* 颜色像素级按钮样式 */
+        .color-matrix { display: flex; gap: 16px; }
+        .color-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .color-circle { width: 44px; height: 44px; border-radius: 50%; border: 3px solid var(--bg-panel); outline: 2px solid var(--border); transition: all 0.25s ease; box-shadow: inset 0 4px 6px rgba(0,0,0,0.4); }
+        .color-wrapper:hover .color-circle { outline-color: var(--text-muted); transform: translateY(-2px); }
+        .color-wrapper.active .color-circle { outline-color: var(--accent); transform: translateY(-2px); box-shadow: 0 0 15px rgba(var(--accent-rgb), 0.3); }
+        .color-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+        .color-wrapper.active .color-label { color: var(--text-main); }
+        
+        /* 特定颜色值 */
+        .c-grey { background-color: #4A525A; }
+        .c-red { background-color: #B30000; }
+
+        /* 智能高级选项卡片网格 (2列并排) */
+        .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .option-card { background: var(--bg-item); border: 1px solid var(--border); border-radius: 12px; padding: 16px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; min-height: 105px; }
+        .option-card:hover { background: var(--bg-item-hover); border-color: var(--text-muted); }
+        .option-card.active { background: rgba(var(--accent-rgb), 0.02); border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+        
+        .opt-meta { display: flex; flex-direction: column; gap: 4px; }
+        .opt-name { font-size: 14px; font-weight: 700; color: var(--text-main); line-height: 1.3; }
+        .opt-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+        .opt-price { font-size: 13px; font-weight: 700; color: var(--text-muted); margin-top: 10px; margin-left: auto; }
+        .option-card.active .opt-price { color: var(--accent); }
+
+        /* -------------------------------------------------------------
+           4. 底部财务结算区与终极转化引擎
+        ------------------------------------------------------------- */
+        .panel-footer { background: var(--bg-panel); border-top: 1px solid var(--border); padding: 30px; box-shadow: 0 -15px 30px rgba(0,0,0,0.3); }
+        .finance-summary { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 20px; }
+        .fin-label { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+        .fin-currency { font-size: 14px; font-weight: 700; color: var(--accent); margin-right: 4px; }
+        .fin-price { font-size: 34px; font-weight: 900; color: var(--accent); letter-spacing: -1px; }
+
+        .action-stack { display: flex; flex-direction: column; gap: 12px; }
+        .btn { width: 100%; padding: 16px; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94); border: none; text-decoration: none; }
+        
+        .btn-secondary { background: var(--bg-item); border: 1px solid var(--border); color: var(--text-main); }
+        .btn-secondary:hover { background: var(--bg-item-hover); border-color: var(--accent); }
+        
+        .btn-whatsapp { background: var(--whatsapp); color: #ffffff; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.2); }
+        .btn-whatsapp:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(37, 211, 102, 0.35); background: #20ba56; }
+        
+        .btn-primary { background: var(--accent); color: #000000; font-weight: 800; box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.2); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(var(--accent-rgb), 0.4); filter: brightness(1.1); }
+
+        /* -------------------------------------------------------------
+           5. 高级外贸询盘弹窗弹窗组件（留存高净值线索）
+        ------------------------------------------------------------- */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); z-index: 100; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-window { background: var(--bg-panel); border: 1px solid var(--border); width: 100%; max-width: 460px; border-radius: 20px; padding: 35px; box-shadow: 0 25px 50px rgba(0,0,0,0.5); relative; transform: translateY(20px); transition: transform 0.3s ease; }
+        .modal-overlay.open .modal-window { transform: translateY(0); }
+        
+        .modal-close { position: absolute; top: 20px; right: 20px; color: var(--text-muted); cursor: pointer; font-size: 18px; transition: color 0.2s; }
+        .modal-close:hover { color: var(--text-main); }
+        .modal-header h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; }
+        .modal-header p { font-size: 13px; color: var(--text-muted); margin-bottom: 25px; line-height: 1.4; }
+        
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 14px; background: var(--bg-item); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); font-size: 14px; outline: none; transition: border-color 0.2s; }
+        .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
+        
+        /* -------------------------------------------------------------
+           6. 响应式布局自适应控制引擎（完美匹配跨端访问）
+        ------------------------------------------------------------- */
+        @media (max-width: 1024px) {
+            body { flex-direction: column; overflow-y: auto; height: auto; }
+            .app-container { flex-direction: column; height: auto; width: 100vw; }
+            .stage-view { width: 100vw; height: 55vh; min-height: 350px; padding: 20px; }
+            .canvas-container { max-width: 450px; }
+            .control-panel { width: 100vw; height: auto; border-left: none; }
+            .panel-scroll-area { padding: 30px 20px; overflow-y: visible; }
+            .panel-footer { position: sticky; bottom: 0; z-index: 50; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <!-- =================左侧核心大屏舞台================= -->
+    <div class="stage-view" id="export-stage">
+        <div class="brand-header">
+            <div class="brand-logo">WORXIN<span>.CA</span><span class="brand-badge">Heavy Duty</span></div>
+        </div>
+        
+        <!-- 精密叠层画布 -->
+        <div class="canvas-container">
+            <!-- 1. 车辆车身底图图层 -->
+            <img id="layer-base" src="base-grey.png" class="layer" alt="Trike Chassis">
+            
+            <!-- 2. 动力电池图层 -->
+            <img id="layer-battery-lead" src="acc-lead.png" class="layer" alt="Lead-Acid Layer">
+            <img id="layer-battery-lithium" src="acc-lithium.png" class="layer hidden" alt="Lithium Layer">
+            
+            <!-- 3. 工程轮胎图层 -->
+            <img id="layer-tires" src="acc-tires.png" class="layer hidden" alt="Off-road Tires Layer">
+            
+            <!-- 4. 重型加装结构件图层 -->
+            <img id="layer-roof" src="acc-roof.png" class="layer hidden" alt="Canopy Layer">
+            <img id="layer-plow" src="acc-plow.png" class="layer hidden" alt="Snow Plow Layer">
+
+            <!-- 5. 供应链物流交付视觉图层 -->
+            <img id="layer-delivery-port" src="loc-port.png" class="layer hidden" alt="Port Infrastructure Layer">
+            <img id="layer-delivery-home" src="loc-home.png" class="layer hidden" alt="Direct Transport Layer">
+        </div>
+        <div class="stage-floor"></div>
+        
+        <!-- 左下角状态监视器 -->
+        <div class="live-specs-badge">
+            <div>COLOR: <strong id="lbl-live-color">Grey</strong></div>
+            <div>BATTERY: <strong id="lbl-live-battery">Lead-Acid</strong></div>
+            <div>TIRES: <strong id="lbl-live-tires">Standard</strong></div>
+        </div>
+    </div>
+    
+    <!-- =================右侧选项控制面板================= -->
+    <div class="control-panel">
+        <div class="panel-scroll-area">
+            <h1 class="panel-title">Build Your Utility Trike</h1>
+            <p class="subtitle">Commercial grade performance built for Canadian farms and private estates. Configure your custom build below.</p>
+            
+            <!-- 模块 1: 颜色选择器 -->
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">1. Exterior Paint</span>
+                    <span class="module-selected-val" id="val-color">Tough Grey</span>
+                </div>
+                <div class="color-matrix">
+                    <div class="color-wrapper active" onclick="selectColor('Grey', 'base-grey.png', 'Tough Grey', this)">
+                        <div class="color-circle c-grey"></div>
+                        <span class="color-label">Grey</span>
+                    </div>
+                    <div class="color-wrapper" onclick="selectColor('Red', 'base-red.png', 'Candy Red', this)">
+                        <div class="color-circle c-red"></div>
+                        <span class="color-label">Red</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 模块 2: 能源与电池动力 -->
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">2. Battery Package</span>
+                    <span class="module-selected-val" id="val-battery">Lead-Acid</span>
+                </div>
+                <div class="options-grid">
+                    <div class="option-card active" data-group="battery" data-val="Lead-Acid" data-price="0" data-layer="layer-battery-lead" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Lead-Acid</span>
+                            <span class="opt-desc">Standard reliable power for daily farm workloads.</span>
+                        </div>
+                        <span class="opt-price">Standard</span>
+                    </div>
+                    <div class="option-card" data-group="battery" data-val="Lithium" data-price="850" data-layer="layer-battery-lithium" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Lithium-Ion</span>
+                            <span class="opt-desc">Extended cold-weather range, fast charging cycle.</span>
+                        </div>
+                        <span class="opt-price">+$850</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 模块 3: 轮胎行走机构 -->
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">3. Tire Package</span>
+                    <span class="module-selected-val" id="val-tires">Standard Farm</span>
+                </div>
+                <div class="options-grid">
+                    <div class="option-card active" data-group="tires" data-val="Standard" data-price="0" data-layer="none" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Standard</span>
+                            <span class="opt-desc">Heavy duty multi-ribbed tires for turf and dirt.</span>
+                        </div>
+                        <span class="opt-price">Standard</span>
+                    </div>
+                    <div class="option-card" data-group="tires" data-val="All-Terrain" data-price="260" data-layer="layer-tires" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">All-Terrain</span>
+                            <span class="opt-desc">Deep aggressive lugs for snow, mud and rough woods.</span>
+                        </div>
+                        <span class="opt-price">+$260</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 模块 4: 加装重型附配件 -->
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">4. Heavy Attachments</span>
+                    <span class="module-selected-val" id="val-addons">None</span>
+                </div>
+                <div class="options-grid">
+                    <div class="option-card active" data-group="addons" data-val="None" data-price="0" data-layers="none" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">No Add-ons</span>
+                            <span class="opt-desc">Keep it raw, original naked cargo box setup.</span>
+                        </div>
+                        <span class="opt-price">Standard</span>
+                    </div>
+                    <div class="option-card" data-group="addons" data-val="Roof" data-price="180" data-layers="layer-roof" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Steel Canopy</span>
+                            <span class="opt-desc">Full front wind shield and rain protection roof.</span>
+                        </div>
+                        <span class="opt-price">+$180</span>
+                    </div>
+                    <div class="option-card" data-group="addons" data-val="SnowPlow" data-price="450" data-layers="layer-plow" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Snow Plow</span>
+                            <span class="opt-desc">Front structural steel subframe blade for driveway clearing.</span>
+                        </div>
+                        <span class="opt-price">+$450</span>
+                    </div>
+                    <div class="option-card" data-group="addons" data-val="Both" data-price="630" data-layers="layer-roof,layer-plow" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Combo Pack</span>
+                            <span class="opt-desc">Equip both the canopy shelter and the front plow.</span>
+                        </div>
+                        <span class="opt-price">+$630</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 模块 5: 交付与清关物流 -->
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">5. Logistics & Delivery</span>
+                    <span class="module-selected-val" id="val-delivery">Port Pickup</span>
+                </div>
+                <div class="options-grid">
+                    <div class="option-card active" data-group="delivery" data-val="Port" data-price="350" data-layer="layer-delivery-port" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Port Self-Pickup</span>
+                            <span class="opt-desc">Collect at warehouse near your closest major port terminal.</span>
+                        </div>
+                        <span class="opt-price">+$350</span>
+                    </div>
+                    <div class="option-card" data-group="delivery" data-val="Home" data-price="650" data-layer="layer-delivery-home" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">To-Your-Door</span>
+                            <span class="opt-desc">Full residential delivery service with lift-gate unload.</span>
+                        </div>
+                        <span class="opt-price">+$650</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 底部全盘财务控制区 -->
+        <div class="panel-footer">
+            <div class="finance-summary">
+                <span class="fin-label">Estimated Total Price</span>
+                <div>
+                    <span class="fin-currency">CAD</span>
+                    <span class="fin-price" id="panel-price-display">2,850</span>
+                </div>
+            </div>
+            <div class="action-stack">
+                <button class="btn btn-secondary" onclick="captureAndDownload()"><i class="fa-solid fa-camera"></i> Save Configuration Spec Image</button>
+                <button class="btn btn-primary" onclick="openQuoteModal()"><i class="fa-solid fa-file-invoice-dollar"></i> Get Final Commercial Invoice</button>
+                <a id="lnk-whatsapp" href="#" target="_blank" class="btn btn-whatsapp" onclick="compileWhatsAppMsg(event)"><i class="fa-brands fa-whatsapp"></i> Transfer Spec to WhatsApp</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- =================外贸高转化线索留存弹窗================= -->
+<div class="modal-overlay" id="quote-modal">
+    <div class="modal-window">
+        <i class="fa-solid fa-xmark modal-close" onclick="closeQuoteModal()"></i>
+        <div class="modal-header">
+            <h3>Request Official Invoice</h3>
+            <p>We will prepare a formal DDP shipping contract and technical datasheet based on your current custom specification.</p>
+        </div>
+        <!-- 接入完全免费的 FormSubmit 服务，无后台，邮件直发你邮箱 -->
+        <form action="https://formsubmit.co/你的邮箱@gmail.com" method="POST" id="quote-form">
+            <!-- 隐藏字段：自动带出用户的完整车辆配置信息 -->
+            <input type="hidden" name="_subject" value="New WORXIN Trike Configuration From Canada Market">
+            <input type="hidden" name="Config_Color" id="form-color">
+            <input type="hidden" name="Config_Battery" id="form-battery">
+            <input type="hidden" name="Config_Tires" id="form-tires">
+            <input type="hidden" name="Config_Addons" id="form-addons">
+            <input type="hidden" name="Config_Delivery" id="form-delivery">
+            <input type="hidden" name="Total_Price_CAD" id="form-price">
+            <!-- 防止垃圾邮件的蜜罐技术 -->
+            <input type="text" name="_honey" style="display:none">
+            
+            <div class="form-group">
+                <label>Your Full Name</label>
+                <input type="text" name="Client_Name" placeholder="e.g. John Smith" required>
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="Client_Email" placeholder="e.g. john@farm.ca" required>
+            </div>
+            <div class="form-group">
+                <label>Delivery Postal Code / Province</label>
+                <input type="text" name="Client_Destination" placeholder="e.g. ON K1A 0B1 / Alberta" required>
+            </div>
+            <div class="form-group">
+                <label>Special Requirements (Optional)</label>
+                <textarea name="Client_Notes" rows="3" placeholder="Custom branding stickers, corporate fleet orders, etc..."></textarea>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Submit Order Specification</button>
+        </form>
+    </div>
+</div>
+
+<!-- =============================================================
+     7. 高效、无第三方框架依赖、高可扩展性的核心 JavaScript 引擎
+============================================================= -->
+<script>
+    // 基础官方定价（加币）
+    const CORE_BASE_PRICE = 2500;
+    
+    // 全局当前运行时状态机
+    let configurationState = {
+        color: 'Grey',
+        colorLabel: 'Tough Grey',
+        battery: 'Lead-Acid',
+        tires: 'Standard',
+        addons: 'None',
+        delivery: 'Port',
+        totalPrice: 2500
+    };
+
+    // 1. 独立运行的颜色选择切换组件
+    function selectColor(colorId, imageFileName, labelText, element) {
+        // 渲染高亮边框
+        document.querySelectorAll('.color-matrix .color-wrapper').forEach(item => item.classList.remove('active'));
+        element.classList.add('active');
+        
+        // 像素级切换底层车身图片
+        document.getElementById('layer-base').src = imageFileName;
+        
+        // 同步内存状态与UI标签
+        configurationState.color = colorId;
+        configurationState.colorLabel = labelText;
+        document.getElementById('val-color').innerText = labelText;
+        document.getElementById('lbl-live-color').innerText = colorId;
+        
+        recalculateFinance();
+    }
+
+    // 2. 高级选项卡片组切换引擎 (处理二选一、多图层隐藏叠加等硬核逻辑)
+    function selectCardOption(element) {
+        const groupName = element.getAttribute('data-group');
+        
+        // 清理同组中其他卡片的激活状态
+        document.querySelectorAll(`.option-card[data-group="${groupName}"]`).forEach(card => card.classList.remove('active'));
+        element.classList.add('active');
+        
+        // 更新页面右上角的短配置标签
+        const selectedValText = element.getAttribute('data-val');
+        document.getElementById(`val-${groupName}`).innerText = selectedValText;
+        
+        // 更新左下角实时监视器标签
+        if(groupName === 'battery') document.getElementById('lbl-live-battery').innerText = selectedValText;
+        if(groupName === 'tires') document.getElementById('lbl-live-tires').innerText = selectedValText;
+
+        // 执行图层流式刷新
+        renderCanvasLayers();
+        recalculateFinance();
+    }
+
+    // 3. 多图层画布渲染引擎（高度解耦，专门解决“随时加装、随时取消”的图像层级Bug）
+    function renderCanvasLayers() {
+        // [A] 解析能源电池图层组
+        const activeBatteryCard = document.querySelector('.option-card[data-group="battery"].active');
+        const activeBatteryLayerId = activeBatteryCard.getAttribute('data-layer');
+        
+        document.getElementById('layer-battery-lead').classList.add('hidden');
+        document.getElementById('layer-battery-lithium').classList.add('hidden');
+        if(activeBatteryLayerId && activeBatteryLayerId !== 'none') {
+            document.getElementById(activeBatteryLayerId).classList.remove('hidden');
+        }
+
+        // [B] 解析工程轮胎图层组
+        const activeTiresCard = document.querySelector('.option-card[data-group="tires"].active');
+        const activeTiresLayerId = activeTiresCard.getAttribute('data-layer');
+        
+        if(activeTiresLayerId === 'none') {
+            document.getElementById('layer-tires').classList.add('hidden');
+        } else {
+            document.getElementById('layer-tires').classList.remove('hidden');
+        }
+
+        // [C] 解析重型附配件图层组 (全面兼容单选、多选甚至不选的图层分级组合)
+        const activeAddonsCard = document.querySelector('.option-card[data-group="addons"].active');
+        const targetAddonLayers = activeAddonsCard.getAttribute('data-layers');
+        
+        document.getElementById('layer-roof').classList.add('hidden');
+        document.getElementById('layer-plow').classList.add('hidden');
+        
+        if(targetAddonLayers && targetAddonLayers !== 'none') {
+            targetAddonLayers.split(',').forEach(layerId => {
+                const el = document.getElementById(layerId);
+                if(el) el.classList.remove('hidden');
+            });
+        }
+
+        // [D] 解析全球供应链物流交付图层组
+        const activeDeliveryCard = document.querySelector('.option-card[data-group="delivery"].active');
+        const activeDeliveryLayerId = activeDeliveryCard.getAttribute('data-layer');
+        
+        document.getElementById('layer-delivery-port').classList.add('hidden');
+        document.getElementById('layer-delivery-home').classList.add('hidden');
+        if(activeDeliveryLayerId && activeDeliveryLayerId !== 'none') {
+            document.getElementById(activeDeliveryLayerId).classList.remove('hidden');
+        }
+    }
+
+    // 4. 多级实时财务算价组件
+    function recalculateFinance() {
+        let incrementalSum = 0;
+        
+        // 遍历所有处于激活状态的配置卡片并累计加价项
+        document.querySelectorAll('.option-card.active').forEach(activeCard => {
+            incrementalSum += parseFloat(activeCard.getAttribute('data-price') || 0);
+            
+            // 顺便把状态机的业务数据给刷了
+            const gName = activeCard.getAttribute('data-group');
+            configurationState[gName] = activeCard.getAttribute('data-val');
+        });
+        
+        configurationState.totalPrice = CORE_BASE_PRICE + incrementalSum;
+        
+        // 动态刷新前端核心渲染面板上的金额
+        document.getElementById('panel-price-display').innerText = configurationState.totalPrice.toLocaleString();
+    }
+
+    // 5. 跨海贸易商机转化引擎 A：WhatsApp 定制消息无缝透传核心
+    function compileWhatsAppMsg(event) {
+        // ⚠️ 重点优化：在这里将手机号直接替换为您用于商业对接的 WhatsApp 国际号码（格式：国家码+手机号，不要带+号或00）
+        const INT_EXPORT_WHATSAPP_NUM = "8613800000000"; 
+        
+        const rawMessage = `Hello WORXIN Canada, I have built a custom vehicle spec on your 3D configurator:\n\n`
+                         + `• Body Color: ${configurationState.colorLabel}\n`
+                         + `• Battery Opt: ${configurationState.battery}\n`
+                         + `• Tires Opt: ${configurationState.tires}\n`
+                         + `• Attachments: ${configurationState.addons}\n`
+                         + `• Shipping Opt: ${configurationState.delivery}\n\n`
+                         + `Estimated Value: $${configurationState.totalPrice.toLocaleString()} CAD.\n`
+                         + `Please check stock and reply with shipping timeline.`;
+                         
+        const encodedUriPayload = encodeURIComponent(rawMessage);
+        document.getElementById('lnk-whatsapp').href = `https://wa.me/${INT_EXPORT_WHATSAPP_NUM}?text=${encodedUriPayload}`;
+    }
+
+    // 6. 跨海贸易商机转化引擎 B：免写后台的询盘系统表单中继
+    function openQuoteModal() {
+        // 呼出弹窗前，自动把当前配置器的各种底层数据状态强制塞进表单的隐藏域中，方便邮件后台格式化读取
+        document.getElementById('form-color').value = configurationState.colorLabel;
+        document.getElementById('form-battery').value = configurationState.battery;
+        document.getElementById('form-tires').value = configurationState.tires;
+        document.getElementById('form-addons').value = configurationState.addons;
+        document.getElementById('form-delivery').value = configurationState.delivery;
+        document.getElementById('form-price').value = `$${configurationState.totalPrice.toLocaleString()} CAD`;
+        
+        document.getElementById('quote-modal').classList.add('open');
+    }
+    
+    function closeQuoteModal() {
+        document.getElementById('quote-modal').classList.remove('open');
+    }
+
+    // 7. 高级 Canvas 图像抓取下载引擎（完美合并多重绝对定位透明图层，产出无损JPG合同配置附件）
+    function captureAndDownload() {
+        const stageDomNode = document.getElementById("export-stage");
+        
+        // 调低动画渲染频率防止抓图抖动
+        html2canvas(stageDomNode, {
+            backgroundColor: "#060709",
+            useCORS: true,
+            scale: 2, // 导出双倍超清分辨率，老外看细节极清晰
+            logging: false
+        }).then(canvas => {
+            const downloadTrackerLink = document.createElement('a');
+            downloadTrackerLink.download = `WORXIN-TRIKE-SPEC-${configurationState.color.toUpperCase()}.png`;
+            downloadTrackerLink.href = canvas.toDataURL('image/png');
+            downloadTrackerLink.click();
+            alert("Success! Your custom configuration sheet has been compiled into a high-res image. You can now attach this file when messaging us on WhatsApp or Email.");
+        });
+    }
+
+    // 页面初始化加载底层生命周期钩子
+    window.addEventListener('DOMContentLoaded', () => {
+        renderCanvasLayers();
+        recalculateFinance();
+    });
+</script>
+
+</body>
+</html>
