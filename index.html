@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WORXIN CANADA | Premium Electric Utility Trike Configurator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #f4f5f7;
+            --bg-stage: #ffffff;
+            --bg-panel: #ffffff;
+            --bg-item: #f9fafb;
+            --bg-item-hover: #f3f4f6;
+            --accent: #111111;
+            --text-main: #111111;
+            --text-muted: #666666;
+            --border: #e5e7eb;
+            --whatsapp: #25D366;
+            --panel-width: 480px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; overflow-x: hidden; display: flex; }
+
+        .app-container { display: flex; width: 100vw; height: 100vh; position: relative; overflow: hidden; }
+
+        .stage-view { flex: 1; height: 100%; position: relative; background: var(--bg-stage); display: flex; justify-content: center; align-items: center; padding: 40px; overflow: hidden; }
+        .stage-floor { position: absolute; bottom: 15%; width: 70%; height: 2px; background: radial-gradient(ellipse at center, #e5e7eb 0%, rgba(255,255,255,0) 70%); pointer-events: none; }
+
+        .canvas-container { position: relative; width: 100%; max-width: 600px; aspect-ratio: 4/3; display: flex; justify-content: center; align-items: center; z-index: 2; }
+        .layer { position: absolute; width: 100%; height: 100%; object-fit: contain; top: 0; left: 0; pointer-events: none; opacity: 1; transition: opacity 0.3s ease; }
+        .layer.hidden { opacity: 0; }
+
+        .brand-header { position: absolute; top: 30px; left: 40px; z-index: 10; display: flex; align-items: center; gap: 12px; }
+        .brand-logo-img { height: 40px; width: auto; object-fit: contain; display: block; }
+        .brand-badge { display: inline-block; padding: 3px 6px; background: #111111; color: #ffffff; font-size: 9px; font-weight: 700; border-radius: 3px; vertical-align: middle; text-transform: uppercase; letter-spacing: 0.5px; }
+
+        .logistics-badge { position: absolute; bottom: 30px; right: 40px; z-index: 10; background: #ffffff; border: 1px solid var(--border); padding: 12px 18px; border-radius: 12px; display: flex; align-items: center; gap: 12px; font-size: 13px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .logistics-badge img { width: 50px; height: 50px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border); }
+
+        .live-specs-badge { position: absolute; bottom: 30px; left: 40px; z-index: 10; background: rgba(255,255,255,0.8); backdrop-filter: blur(10px); border: 1px solid var(--border); padding: 10px 16px; border-radius: 8px; display: flex; gap: 15px; font-size: 11px; color: var(--text-muted); box-shadow: 0 4px 12px rgba(0,0,0,0.03); }
+        .live-specs-badge strong { color: var(--text-main); }
+
+        .control-panel { width: var(--panel-width); height: 100%; background-color: var(--bg-panel); border-left: 1px solid var(--border); display: flex; flex-direction: column; z-index: 10; position: relative; }
+        .panel-scroll-area { flex: 1; overflow-y: auto; padding: 40px 30px; }
+        
+        .panel-title { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 6px; }
+        .panel-subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 35px; line-height: 1.5; }
+
+        .module-group { margin-bottom: 35px; }
+        .module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .module-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); }
+        .module-selected-val { font-size: 11px; font-weight: 600; color: var(--text-main); background: var(--bg-item); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border); }
+
+        .color-matrix { display: flex; gap: 20px; }
+        .color-wrapper { position: relative; display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+        .color-circle { width: 40px; height: 40px; border-radius: 50%; border: 3px solid #ffffff; outline: 1px solid #d1d5db; transition: all 0.2s ease; }
+        .color-wrapper.active .color-circle { outline-width: 2px; outline-color: #111111; transform: scale(1.05); }
+        .color-label { font-size: 11px; color: var(--text-muted); }
+        .c-grey { background-color: #4A525A; }
+        .c-red { background-color: #B30000; }
+
+        .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .option-card { background: #ffffff; border: 1px solid var(--border); border-radius: 12px; padding: 14px; cursor: pointer; transition: all 0.2s ease; display: flex; flex-direction: column; justify-content: space-between; min-height: 100px; }
+        .option-card:hover { background: var(--bg-item); border-color: #b1b5bc; }
+        .option-card.active { background: #ffffff; border-color: #111111; box-shadow: inset 0 0 0 1px #111111; }
+        
+        .opt-meta { display: flex; flex-direction: column; gap: 3px; }
+        .opt-name { font-size: 14px; font-weight: 600; color: var(--text-main); }
+        .opt-desc { font-size: 11px; color: var(--text-muted); line-height: 1.3; }
+        .opt-price { font-size: 12px; font-weight: 600; color: var(--text-muted); margin-top: 8px; text-align: right; }
+        .option-card.active .opt-price { color: var(--text-main); }
+
+        .panel-footer { background: #ffffff; border-top: 1px solid var(--border); padding: 25px 30px; }
+        .finance-summary { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 18px; }
+        .fin-label { font-size: 12px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        .fin-price { font-size: 30px; font-weight: 700; color: #111111; }
+
+        .action-stack { display: flex; flex-direction: column; gap: 10px; }
+        .btn { width: 100%; padding: 14px; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 8px; transition: all 0.2s; border: none; text-decoration: none; }
+        
+        .btn-secondary { background: #ffffff; border: 1px solid #d1d5db; color: #111111; }
+        .btn-secondary:hover { background: var(--bg-item); border-color: #111111; }
+        .btn-primary { background: #111111; color: #ffffff; }
+        .btn-whatsapp { background: var(--whatsapp); color: #ffffff; font-weight: 700; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.4); backdrop-filter: blur(4px); z-index: 100; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-window { background: #ffffff; border: 1px solid var(--border); width: 100%; max-width: 440px; border-radius: 16px; padding: 30px; position: relative; }
+        .modal-close { position: absolute; top: 20px; right: 20px; color: var(--text-muted); cursor: pointer; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; font-size: 11px; font-weight: 700; color: var(--text-muted); margin-bottom: 6px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 12px; background: var(--bg-item); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main); font-size: 14px; }
+
+        @media (max-width: 1024px) {
+            body { flex-direction: column; overflow-y: auto; }
+            .app-container { flex-direction: column; height: auto; }
+            .stage-view { width: 100vw; height: 50vh; min-height: 300px; padding: 20px; }
+            .control-panel { width: 100vw; height: auto; }
+            .panel-scroll-area { padding: 25px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div class="stage-view" id="export-stage">
+        <div class="brand-header">
+            <img src="logo.png" alt="WORXIN Logo" class="brand-logo-img">
+            <span class="brand-badge">DDP SERVICE</span>
+        </div>
+        
+        <div class="canvas-container">
+            <img id="layer-base" src="base-grey.png" class="layer" alt="Chassis">
+            <img id="layer-battery-lead" src="acc-lead.png" class="layer" alt="Lead-Acid">
+            <img id="layer-battery-lithium" src="acc-lithium.png" class="layer hidden" alt="Lithium">
+            <img id="layer-tires" src="acc-tires.png" class="layer hidden" alt="Tires">
+            <img id="layer-roof" src="acc-roof.png" class="layer hidden" alt="Roof">
+            <img id="layer-plow" src="acc-plow.png" class="layer hidden" alt="Plow">
+            
+            <img id="layer-tipper-grey" src="acc-tipper-grey.png" class="layer hidden" alt="Grey Hydraulic Tipper">
+            <img id="layer-tipper-red" src="acc-tipper-red.png" class="layer hidden" alt="Red Hydraulic Tipper">
+        </div>
+        <div class="stage-floor"></div>
+        
+        <div id="floating-logistics-badge" class="logistics-badge">
+            <img id="img-logistics-preview" src="loc-port.png" alt="Logistics">
+            <div>
+                <div style="font-weight: 700;" id="txt-logistics-title">Port Self-Pickup</div>
+                <div style="color: var(--text-muted); font-size: 11px;" id="txt-logistics-cost">Included in base price</div>
+            </div>
+        </div>
+        
+        <div class="live-specs-badge">
+            <div>COLOR: <strong id="lbl-live-color">Grey</strong></div>
+            <div>BATTERY: <strong id="lbl-live-battery">Lead-Acid</strong></div>
+            <div>TIRES: <strong id="lbl-live-tires">Standard</strong></div>
+            <div>TIPPER: <strong id="lbl-live-tipper">Manual</strong></div>
+        </div>
+    </div>
+    
+    <div class="control-panel">
+        <div class="panel-scroll-area">
+            <h1 class="panel-title">Design Your Trike</h1>
+            <p class="subtitle">Configure your heavy duty vehicle with precise commercial options for the Canadian market.</p>
+            
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">1. Exterior Color</span>
+                    <span class="module-selected-val" id="val-color">Tough Grey</span>
+                </div>
+                <div class="color-matrix">
+                    <div class="color-wrapper active" onclick="selectColor('Grey', 'base-grey.png', 'Tough Grey', this)">
+                        <div class="color-circle c-grey"></div>
+                        <span class="color-label">Grey</span>
+                    </div>
+                    <div class="color-wrapper" onclick="selectColor('Red', 'base-red.png', 'Candy Red', this)">
+                        <div class="color-circle c-red"></div>
+                        <span class="color-label">Red</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">2. Powertrain Battery</span>
+                    <span class="module-selected-val" id="val-battery">Lead-Acid</span>
+                </div>
+                <div class="options-grid">
+                    <div class="option-card active" data-group="battery" data-val="Lead-Acid" data-price="0" data-layer="layer-battery-lead" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Lead-Acid</span>
+                            <span class="opt-desc">Heavy duty cell matrix. Standard setup.</span>
+                        </div>
+                        <span class="opt-price">Included</span>
+                    </div>
+                    <div class="option-card" data-group="battery" data-val="Samsung Lithium" data-price="450" data-layer="layer-battery-lithium" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Samsung Lithium</span>
+                            <span class="opt-desc">Premium Samsung lifecycles. Low temp endurance.</span>
+                        </div>
+                        <span class="opt-price">+$450 CAD</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">3. Tires Package</span>
+                    <span class="module-selected-val" id="val-tires">Standard</span>
+                </div>
+                <div class="options-grid">
+                    <div class="option-card active" data-group="tires" data-val="Standard" data-price="0" data-layer="none" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Standard</span>
+                            <span class="opt-desc">All-purpose ribs for yards and packed ground.</span>
+                        </div>
+                        <span class="opt-price">Included</span>
+                    </div>
+                    <div class="option-card" data-group="tires" data-val="All-Terrain" data-price="99" data-layer="layer-tires" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">All-Terrain</span>
+                            <span class="opt-desc">Deep aggressive lugs for mud, snow and forests.</span>
+                        </div>
+                        <span class="opt-price">+$99 CAD</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">4. Heavy Attachments</span>
+                    <span class="module-selected-val" id="val-addons">None</span>
+                </div>
+                <div class="options-grid">
+                    <div class="option-card active" data-group="addons" data-val="None" data-price="0" data-layers="none" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">No Attachments</span>
+                            <span class="opt-desc">Standard open utility cargo dump bed.</span>
+                        </div>
+                        <span class="opt-price">Standard</span>
+                    </div>
+                    <div class="option-card" data-group="addons" data-val="Canopy Roof" data-price="99" data-layers="layer-roof" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Canopy Roof</span>
+                            <span class="opt-desc">All-weather roof shelter and windshield.</span>
+                        </div>
+                        <span class="opt-price">+$99 CAD</span>
+                    </div>
+                    <div class="option-card" data-group="addons" data-val="Snow Plow" data-price="89" data-layers="layer-plow" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Snow Plow Blade</span>
+                            <span class="opt-desc">Front structural steel snow scraping kit.</span>
+                        </div>
+                        <span class="opt-price">+$89 CAD</span>
+                    </div>
+                    <div class="option-card" data-group="addons" data-val="Canopy + Plow" data-price="188" data-layers="layer-roof,layer-plow" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Full Cabin Pack</span>
+                            <span class="opt-desc">Equip both shelter canopy and winter plow.</span>
+                        </div>
+                        <span class="opt-price">+$188 CAD</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">5. Bed Lift Mechanism</span>
+                    <span class="module-selected-val" id="val-tipper">Manual Tilt</span>
+                </div>
+                <div class="options-grid">
+                    <div class="option-card active" data-group="tipper" data-val="Manual Tilt" data-price="0" data-layer="none" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Manual Assist</span>
+                            <span class="opt-desc">Standard counterbalanced gas-shock manual dumping.</span>
+                        </div>
+                        <span class="opt-price">Included</span>
+                    </div>
+                    <div class="option-card" data-group="tipper" data-val="Hydraulic Tipper" data-price="119" data-layer="trigger-dynamic" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Hydraulic Lift</span>
+                            <span class="opt-desc">Electric hydraulic cylinder for automatic dumping.</span>
+                        </div>
+                        <span class="opt-price">+$119 CAD</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="module-group">
+                <div class="module-header">
+                    <span class="module-title">6. Logistics & Fulfillment</span>
+                    <span class="module-selected-val" id="val-delivery">Port Self-Pickup</span>
+                </div>
+                <div class="options-grid">
+                    <div class="option-card active" data-group="delivery" data-val="Port Self-Pickup" data-price="0" data-img="loc-port.png" data-desc="Collect at nearest major port terminal" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Port Pickup</span>
+                            <span class="opt-desc">Pick up at warehouse near your closest port.</span>
+                        </div>
+                        <span class="opt-price">Included</span>
+                    </div>
+                    <div class="option-card" data-group="delivery" data-val="Door-to-Door" data-price="600" data-img="loc-home.png" data-desc="Full residential delivery with liftgate" onclick="selectCardOption(this)">
+                        <div class="opt-meta">
+                            <span class="opt-name">Door Delivery</span>
+                            <span class="opt-desc">Direct line transport right to your farm gates.</span>
+                        </div>
+                        <span class="opt-price">+$600 CAD</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel-footer">
+            <div class="finance-summary">
+                <span class="fin-label">Total Price</span>
+                <span class="fin-price">$<span id="panel-price-display">2,849</span> CAD</span>
+            </div>
+            <div class="action-stack">
+                <button class="btn btn-secondary" onclick="captureAndDownload()"><i class="fa-solid fa-camera"></i> Save Configuration Sheet Image</button>
+                <button class="btn btn-primary" onclick="openQuoteModal()"><i class="fa-solid fa-file-invoice-dollar"></i> Get Commercial Invoice</button>
+                <a id="lnk-whatsapp" href="#" target="_blank" class="btn btn-whatsapp" onclick="compileWhatsAppMsg(event)"><i class="fa-brands fa-whatsapp"></i> Chat on WhatsApp to Order</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="quote-modal">
+    <div class="modal-window">
+        <i class="fa-solid fa-xmark modal-close" onclick="closeQuoteModal()"></i>
+        <div class="modal-header">
+            <h3 style="margin-bottom: 8px;">Request Formal Proforma Invoice</h3>
+            <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 20px;">We will reply with a detailed DDP quote contract via email.</p>
+        </div>
+        <form action="https://formsubmit.co/你的邮箱@gmail.com" method="POST">
+            <input type="hidden" name="Config_Color" id="form-color">
+            <input type="hidden" name="Config_Battery" id="form-battery">
+            <input type="hidden" name="Config_Tires" id="form-tires">
+            <input type="hidden" name="Config_Addons" id="form-addons">
+            <input type="hidden" name="Config_Tipper" id="form-tipper">
+            <input type="hidden" name="Config_Delivery" id="form-delivery">
+            <input type="hidden" name="Total_Price_CAD" id="form-price">
+            
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" name="Name" required placeholder="John Smith">
+            </div>
+            <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" name="Email" required placeholder="john@farm.ca">
+            </div>
+            <div class="form-group">
+                <label>Postal Code & Province</label>
+                <input type="text" name="Location" required placeholder="e.g. AB T2P 2M2">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:10px;">Submit Spec Sheet</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const CORE_BASE_PRICE = 2849;
+    
+    let configurationState = {
+        color: 'Grey',
+        colorLabel: 'Tough Grey',
+        battery: 'Lead-Acid',
+        tires: 'Standard',
+        addons: 'None',
+        tipper: 'Manual Tilt',
+        delivery: 'Port Self-Pickup',
+        totalPrice: 2849
+    };
+
+    function selectColor(colorId, imageFileName, labelText, element) {
+        document.querySelectorAll('.color-matrix .color-wrapper').forEach(item => item.classList.remove('active'));
+        element.classList.add('active');
+        document.getElementById('layer-base').src = imageFileName;
+        
+        configurationState.color = colorId;
+        configurationState.colorLabel = labelText;
+        document.getElementById('val-color').innerText = labelText;
+        document.getElementById('lbl-live-color').innerText = colorId;
+        
+        // 🌟 核心改动：当切换颜色时，强制重新刷新所有图层，确保翻斗颜色同步转换 🌟
+        renderCanvasLayers();
+        recalculateFinance();
+    }
+
+    function selectCardOption(element) {
+        const groupName = element.getAttribute('data-group');
+        document.querySelectorAll(`.option-card[data-group="${groupName}"]`).forEach(card => card.classList.remove('active'));
+        element.classList.add('active');
+        
+        const selectedValText = element.getAttribute('data-val');
+        document.getElementById(`val-${groupName}`).innerText = selectedValText;
+        
+        if(groupName === 'battery') document.getElementById('lbl-live-battery').innerText = selectedValText;
+        if(groupName === 'tires') document.getElementById('lbl-live-tires').innerText = selectedValText;
+        if(groupName === 'tipper') document.getElementById('lbl-live-tipper').innerText = selectedValText;
+
+        if(groupName === 'delivery') {
+            const imgLocalPath = element.getAttribute('data-img');
+            const descLocalText = element.getAttribute('data-desc');
+            document.getElementById('img-logistics-preview').src = imgLocalPath;
+            document.getElementById('txt-logistics-title').innerText = selectedValText;
+            document.getElementById('txt-logistics-cost').innerText = descLocalText;
+        }
+
+        renderCanvasLayers();
+        recalculateFinance();
+    }
+
+    function renderCanvasLayers() {
+        // 1. 电池图层
+        const activeBattery = document.querySelector('.option-card[data-group="battery"].active').getAttribute('data-layer');
+        document.getElementById('layer-battery-lead').classList.add('hidden');
+        document.getElementById('layer-battery-lithium').classList.add('hidden');
+        if(activeBattery && activeBattery !== 'none') document.getElementById(activeBattery).classList.remove('hidden');
+
+        // 2. 轮胎图层
+        const activeTires = document.querySelector('.option-card[data-group="tires"].active').getAttribute('data-layer');
+        if(activeTires === 'none') document.getElementById('layer-tires').classList.add('hidden');
+        else document.getElementById('layer-tires').classList.remove('hidden');
+
+        // 3. 配件图层组
+        const activeAddons = document.querySelector('.option-card[data-group="addons"].active').getAttribute('data-layers');
+        document.getElementById('layer-roof').classList.add('hidden');
+        document.getElementById('layer-plow').classList.add('hidden');
+        if(activeAddons && activeAddons !== 'none') {
+            activeAddons.split(',').forEach(id => {
+                if(document.getElementById(id)) document.getElementById(id).classList.remove('hidden');
+            });
+        }
+
+        // 4. 🌟 双色智能翻斗图层控制核心 🌟
+        document.getElementById('layer-tipper-grey').classList.add('hidden');
+        document.getElementById('layer-tipper-red').classList.add('hidden');
+        
+        const activeTipperCard = document.querySelector('.option-card[data-group="tipper"].active');
+        const tipperTrigger = activeTipperCard.getAttribute('data-layer');
+        
+        if (tipperTrigger === 'trigger-dynamic') {
+            // 根据当前全局运行时状态机的车身颜色，动态挑出对应的翻斗图片显现
+            if (configurationState.color === 'Grey') {
+                document.getElementById('layer-tipper-grey').classList.remove('hidden');
+            } else if (configurationState.color === 'Red') {
+                document.getElementById('layer-tipper-red').classList.remove('hidden');
+            }
+        }
+    }
+
+    function recalculateFinance() {
+        let incrementalSum = 0;
+        document.querySelectorAll('.option-card.active').forEach(card => {
+            incrementalSum += parseFloat(card.getAttribute('data-price') || 0);
+            configurationState[card.getAttribute('data-group')] = card.getAttribute('data-val');
+        });
+        
+        configurationState.totalPrice = CORE_BASE_PRICE + incrementalSum;
+        document.getElementById('panel-price-display').innerText = configurationState.totalPrice.toLocaleString();
+    }
+
+    function compileWhatsAppMsg(event) {
+        const INT_EXPORT_WHATSAPP_NUM = "8613800000000"; 
+        
+        const rawMessage = `Hello WORXIN Canada, I customized an electric trike build:\n\n`
+                         + `• Color: ${configurationState.colorLabel}\n`
+                         + `• Battery: ${configurationState.battery}\n`
+                         + `• Tires: ${configurationState.tires}\n`
+                         + `• Addons: ${configurationState.addons}\n`
+                         + `• Bed Lift: ${configurationState.tipper}\n`
+                         + `• Delivery: ${configurationState.delivery}\n\n`
+                         + `Total Price Quote: $${configurationState.totalPrice.toLocaleString()} CAD.\n`
+                         + `Please confirm order details.`;
+        document.getElementById('lnk-whatsapp').href = `https://wa.me/${INT_EXPORT_WHATSAPP_NUM}?text=${encodeURIComponent(rawMessage)}`;
+    }
+
+    function openQuoteModal() {
+        document.getElementById('form-color').value = configurationState.colorLabel;
+        document.getElementById('form-battery').value = configurationState.battery;
+        document.getElementById('form-tires').value = configurationState.tires;
+        document.getElementById('form-addons').value = configurationState.addons;
+        document.getElementById('form-tipper').value = configurationState.tipper;
+        document.getElementById('form-delivery').value = configurationState.delivery;
+        document.getElementById('form-price').value = `$${configurationState.totalPrice.toLocaleString()} CAD`;
+        document.getElementById('quote-modal').classList.add('open');
+    }
+    
+    function closeQuoteModal() { document.getElementById('quote-modal').classList.remove('open'); }
+
+    function captureAndDownload() {
+        const stageDomNode = document.getElementById("export-stage");
+        html2canvas(stageDomNode, { backgroundColor: "#ffffff", useCORS: true, scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `WORXIN-SPEC-${configurationState.color}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+        renderCanvasLayers();
+        recalculateFinance();
+    });
+</script>
+
+</body>
+</html>
