@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WORXIN CANADA | Premium Electric Utility Trike Configurator</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-main: #ffffff;
+            --bg-stage: #f8f9fa;
+            --bg-panel: #ffffff;
+            --bg-item: #f8f9fa;
+            --bg-item-hover: #f1f3f5;
+            --accent: #111111;
+            --text-main: #111111;
+            --text-muted: #6b7280;
+            --border: #e5e7eb;
+            --whatsapp: #25D366;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
+
+        /* 全屏响应式骨架 */
+        .app-container { width: 100vw; display: flex; flex-direction: column; background: #ffffff; min-height: 100vh; }
+
+        /* 【上部舞台区域】 */
+        .stage-view { width: 100%; height: 52vh; min-height: 420px; position: relative; background: var(--bg-stage); display: flex; justify-content: center; align-items: center; padding: 20px; overflow: hidden; border-bottom: 1px solid var(--border); }
+        .stage-floor { position: absolute; bottom: 8%; width: 90%; height: 2px; background: radial-gradient(ellipse at center, #dee2e6 0%, rgba(255,255,255,0) 70%); pointer-events: none; }
+
+        /* 图片尺寸极大化控制 */
+        .canvas-container { position: relative; width: 100%; max-width: 850px; aspect-ratio: 16/10; display: flex; justify-content: center; align-items: center; z-index: 2; }
+        .product-main-image { width: 100%; height: 100%; object-fit: contain; }
+
+        /* 品牌 Logo 与挂件 */
+        .brand-header { position: absolute; top: 25px; left: 30px; z-index: 10; display: flex; align-items: center; gap: 10px; }
+        .brand-logo-img { height: 36px; width: auto; object-fit: contain; display: block; }
+        .brand-badge { display: inline-block; padding: 2px 5px; background: #111111; color: #ffffff; font-size: 8px; font-weight: 700; border-radius: 3px; text-transform: uppercase; }
+
+        .logistics-badge { position: absolute; bottom: 25px; right: 30px; z-index: 10; background: #ffffff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 10px; display: flex; align-items: center; gap: 10px; font-size: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+        .logistics-badge img { width: 40px; height: 40px; object-fit: cover; border-radius: 4px; border: 1px solid var(--border); }
+
+        /* 下部面板模块 */
+        .control-panel { width: 100%; max-width: 1400px; margin: 0 auto; padding: 30px 40px; background-color: var(--bg-panel); }
+        .panel-header-block { margin-bottom: 25px; border-bottom: 1px solid var(--border); padding-bottom: 15px; }
+        .panel-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+        .panel-subtitle { color: var(--text-muted); font-size: 12px; }
+
+        .module-group { margin-bottom: 25px; }
+        .module-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .module-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+        .module-selected-val { font-size: 11px; font-weight: 600; color: var(--text-main); background: var(--bg-item); padding: 1px 6px; border-radius: 4px; border: 1px solid var(--border); }
+
+        /* 颜色组件 */
+        .color-matrix { display: flex; gap: 15px; }
+        .color-wrapper { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+        .color-circle { width: 34px; height: 34px; border-radius: 50%; border: 2px solid #ffffff; outline: 1px solid #d1d5db; }
+        .color-wrapper.active .color-circle { outline-width: 2px; outline-color: #111111; }
+        .color-label { font-size: 10px; color: var(--text-muted); }
+        .c-grey { background-color: #4A525A; }
+        .c-red { background-color: #B30000; }
+
+        /* 配置方块平铺样式 */
+        .options-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .option-card { background: #ffffff; border: 1px solid var(--border); border-radius: 8px; padding: 14px; cursor: pointer; transition: all 0.15s ease; display: flex; flex-direction: column; justify-content: space-between; min-height: 95px; }
+        .option-card:hover { background: var(--bg-item-hover); border-color: #a1a5ad; }
+        .option-card.active { background: #ffffff; border-color: #111111; box-shadow: inset 0 0 0 1px #111111; }
+        
+        .opt-meta { display: flex; flex-direction: column; gap: 2px; }
+        .opt-name { font-size: 14px; font-weight: 600; color: var(--text-main); }
+        .opt-desc { font-size: 11px; color: var(--text-muted); line-height: 1.3; }
+        .opt-price { font-size: 11px; font-weight: 600; color: var(--text-muted); margin-top: 6px; text-align: right; }
+        .option-card.active .opt-price { color: var(--text-main); }
+
+        /* 底部财务动作条 */
+        .panel-footer { margin-top: 15px; border-top: 1px solid var(--border); padding-top: 25px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 20px; }
+        .finance-summary { display: flex; flex-direction: column; gap: 2px; }
+        .fin-label { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+        .fin-price { font-size: 28px; font-weight: 700; color: #111111; }
+
+        .action-stack { display: flex; gap: 10px; }
+        .btn { padding: 12px 20px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 6px; transition: all 0.2s; border: none; text-decoration: none; }
+        
+        .btn-secondary { background: #ffffff; border: 1px solid #d1d5db; color: #111111; }
+        .btn-secondary:hover { background: var(--bg-item-hover); border-color: #111111; }
+        .btn-primary { background: #111111; color: #ffffff; padding: 12px 24px; }
+        .btn-primary:hover { background: #222222; }
+        .btn-whatsapp { background: var(--whatsapp); color: #ffffff; font-weight: 700; }
+
+        /* 询盘弹窗 */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); z-index: 100; display: flex; justify-content: center; align-items: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+        .modal-overlay.open { opacity: 1; pointer-events: auto; }
+        .modal-window { background: #ffffff; border: 1px solid var(--border); width: 100%; max-width: 420px; border-radius: 12px; padding: 25px; position: relative; }
+        .modal-close { position: absolute; top: 15px; right: 15px; color: var(--text-muted); cursor: pointer; }
+        .form-group { margin-bottom: 12px; }
+        .form-group label { display: block; font-size: 10px; font-weight: 700; color: var(--text-muted); margin-bottom: 4px; }
+        .form-group input, .form-group textarea { width: 100%; padding: 10px; background: var(--bg-item); border: 1px solid var(--border); border-radius: 6px; color: var(--text-main); font-size: 13px; }
+
+        @media (max-width: 768px) {
+            .stage-view { height: 35vh; min-height: 260px; }
+            .control-panel { padding: 20px 15px; }
+            .options-grid { grid-template-columns: 1fr; }
+            .panel-footer { flex-direction: column; align-items: flex-start; gap: 15px; }
+            .action-stack { width: 100%; flex-direction: column; }
+            .btn { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    
+    <div class="stage-view" id="export-stage">
+        <div class="brand-header">
+            <img src="logo.png" alt="WORXIN Logo" class="brand-logo-img">
+            <span class="brand-badge">DDP SERVICE</span>
+        </div>
+        
+        <div class="canvas-container">
+            <img id="main-product-view" src="grey-lead.png" class="product-main-image" alt="WORXIN Vehicle Preview">
+        </div>
+        <div class="stage-floor"></div>
+        
+        <div id="floating-logistics-badge" class="logistics-badge">
+            <img id="img-logistics-preview" src="loc-port.png" alt="Logistics">
+            <div>
+                <div style="font-weight: 700;" id="txt-logistics-title">港口提货</div>
+                <div style="color: var(--text-muted); font-size: 10px;" id="txt-logistics-cost">包含在基本价格中</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="control-panel">
+        <div class="panel-header-block">
+            <h1 class="panel-title">设计你的多功能三轮车</h1>
+            <p class="subtitle">点击下方任何核心选项或加装选配，上方大图将即时替换对应的实车外观组合。</p>
+        </div>
+        
+        <div class="module-group">
+            <div class="module-header">
+                <span class="module-title">1. 外观颜色车漆</span>
+                <span class="module-selected-val" id="val-color">坚韧灰</span>
+            </div>
+            <div class="color-matrix">
+                <div class="color-wrapper active" onclick="triggerCoreChange('color', 'Grey', '坚韧灰', this)">
+                    <div class="color-circle c-grey"></div>
+                    <span class="color-label">灰色车漆</span>
+                </div>
+                <div class="color-wrapper" onclick="triggerCoreChange('color', 'Red', '糖果红', this)">
+                    <div class="color-circle c-red"></div>
+                    <span class="color-label">红色车漆</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="module-group">
+            <div class="module-header">
+                <span class="module-title">2. 动力系统组</span>
+                <span class="module-selected-val" id="val-battery">铅酸电池</span>
+            </div>
+            <div class="options-grid">
+                <div class="option-card active" data-group="battery" data-val="lead" data-label="铅酸电池" data-price="0" onclick="triggerCoreChange('battery', 'lead', '铅酸电池', this)">
+                    <div class="opt-meta">
+                        <span class="opt-name">标准铅酸电池</span>
+                        <span class="opt-desc">重型稳定电芯矩阵，标准耐用配置。</span>
+                    </div>
+                    <span class="opt-price">标配包括</span>
+                </div>
+                <div class="option-card" data-group="battery" data-val="lithium" data-label="三星锂电池" data-price="450" onclick="triggerCoreChange('battery', 'lithium', '三星锂电池', this)">
+                    <div class="opt-meta">
+                        <span class="opt-name">三星锂电池组</span>
+                        <span class="opt-desc">高端电芯核心，耐低温，长寿命循环。</span>
+                    </div>
+                    <span class="opt-price">+$450 CAD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="module-group">
+            <div class="module-header">
+                <span class="module-title">3. 车厢翻斗卸料机构</span>
+                <span class="module-selected-val" id="val-tipper">手动辅助气撑</span>
+            </div>
+            <div class="options-grid">
+                <div class="option-card active" data-group="tipper" data-val="manual" data-label="手动辅助气撑" data-price="0" onclick="triggerCoreChange('tipper', 'manual', '手动辅助气撑', this)">
+                    <div class="opt-meta">
+                        <span class="opt-name">手动平衡阻尼</span>
+                        <span class="opt-desc">标配双气压挺杆缓冲，手动省力倾卸。</span>
+                    </div>
+                    <span class="opt-price">标配包括</span>
+                </div>
+                <div class="option-card" data-group="tipper" data-val="tipper" data-label="液压升降机" data-price="119" onclick="triggerCoreChange('tipper', 'tipper', '液压升降机', this)">
+                    <div class="opt-meta">
+                        <span class="opt-name">液压升降机系统</span>
+                        <span class="opt-desc">电动高压液压缸。一键自动升降翻斗。</span>
+                    </div>
+                    <span class="opt-price">+$119 CAD</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="module-group">
+            <div class="module-header">
+                <span class="module-title">4. 附加工程配套结构件</span>
+                <span class="module-selected-val" id="val-addon">无附加件</span>
+            </div>
+            <div class="options-grid">
+                <div class="option-card active" data-group="addon" data-val="none" data-label="无附加件" data-price="0" onclick="triggerCoreChange('addon', 'none', '无附加件', this)">
+                    <div class="opt-meta">
+                        <span class="opt-name">标准裸车厢</span>
+                        <span class="opt-desc">不加装外部钢制套件，保持原生倾卸栏板。</span>
+                    </div>
+                    <span class="opt-price">标准</span>
+                </div>
+                <div class="option-card" data-group="addon" data-val="roof" data-label="遮阳雨车棚" data-price="99" onclick="triggerCoreChange('addon', 'roof', '遮阳雨车棚', this)">
+                    <div class="opt-meta">
+                        <span class="opt-name">防护遮阳雨车棚</span>
+                        <span class="opt-desc">一体式厚重加固全封闭前挡风顶棚套件。</span>
+                    </div>
+                    <span class="opt-price">+$99 CAD</span>
+                </div>
+                <div class="option-card" data-group="addon" data-val="plow" data-label="重型推雪铲" data-price="89" onclick="triggerCoreChange('addon', 'plow', '重型推雪铲', this)">
+                    <div class="opt-meta">
+                        <span class="opt-name">前置重型推雪铲</span>
+                        <span class="opt-desc">高强度耐磨锰钢推雪铲刮板，破冰除雪。</span>
+                    </div>
+                    <span class="opt-price">+$89 CAD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="module-group">
+            <div class="module-header">
+                <span class="module-title">5. 北美清关海运物流网络</span>
+                <span class="module-selected-val" id="val-delivery">港口自提</span>
+            </div>
+            <div class="options-grid">
+                <div class="option-card active" data-group="delivery" data-val="port" data-price="0" data-img="loc-port.png" data-desc="到港口合作堆栈自行清关提货" onclick="selectDeliveryLogistics(this)">
+                    <div class="opt-meta">
+                        <span class="opt-name">海运港口自提</span>
+                        <span class="opt-desc">运抵温哥华/多伦多等各大最邻近海运港指定干仓。</span>
+                    </div>
+                    <span class="opt-price">已包含</span>
+                </div>
+                <div class="option-card" data-group="delivery" data-val="home" data-price="600" data-img="loc-home.png" data-desc="全内陆卡车派送直达庄园门口" onclick="selectDeliveryLogistics(this)">
+                    <div class="opt-meta">
+                        <span class="opt-name">全包送货上门</span>
+                        <span class="opt-desc">安排双轴高低板拖车直接派送至农场。</span>
+                    </div>
+                    <span class="opt-price">+$600 CAD</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-footer">
+            <div class="finance-summary">
+                <span class="fin-label">加拿大 DDP 落地完税估算总价</span>
+                <span class="fin-price">$<span id="panel-price-display">2,849</span> CAD</span>
+            </div>
+            <div class="action-stack">
+                <button class="btn btn-secondary" onclick="captureAndDownload()"><i class="fa-solid fa-camera"></i> 保存配置图像</button>
+                <button class="btn btn-primary" onclick="openQuoteModal()"><i class="fa-solid fa-file-invoice-dollar"></i> 导出商业发票</button>
+                <a id="lnk-whatsapp" href="#" target="_blank" class="btn btn-whatsapp" onclick="compileWhatsAppMsg(event)"><i class="fa-brands fa-whatsapp"></i> 发送至 WhatsApp 沟通</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="quote-modal">
+    <div class="modal-window">
+        <i class="fa-solid fa-xmark modal-close" onclick="closeQuoteModal()"></i>
+        <div class="modal-header">
+            <h3 style="margin-bottom: 6px; font-size: 18px;">索取正式 Proforma Invoice</h3>
+            <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">客服团队将在24小时内为您出具带有海运期及关税细则的正式合同。</p>
+        </div>
+        <form action="https://formsubmit.co/你的邮箱@gmail.com" method="POST">
+            <input type="hidden" name="选配_车身车漆" id="form-color">
+            <input type="hidden" name="选配_动力蓄电池" id="form-battery">
+            <input type="hidden" name="选配_倾卸机构" id="form-tipper">
+            <input type="hidden" name="选配_加装套件" id="form-addon">
+            <input type="hidden" name="选配_清关物流" id="form-delivery">
+            <input type="hidden" name="报价_总额_CAD" id="form-price">
+            
+            <div class="form-group">
+                <label>收件人姓名 / Full Name</label>
+                <input type="text" name="Name" required placeholder="John Smith">
+            </div>
+            <div class="form-group">
+                <label>电子邮箱 / Email Address</label>
+                <input type="email" name="Email" required placeholder="john@farm.ca">
+            </div>
+            <div class="form-group">
+                <label>派送邮编与省份 / Destination Postal Code</label>
+                <input type="text" name="Location" required placeholder="e.g. AB T2P 2M2">
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:5px;">提交选配清单</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const CORE_BASE_PRICE = 2849;
+    
+    let appState = {
+        color: 'Grey',         
+        colorLabel: '坚韧灰',
+        battery: 'lead',       
+        batteryLabel: '铅酸电池',
+        tipper: 'manual',      
+        tipperLabel: '手动辅助气撑',
+        addon: 'none',         
+        addonLabel: '无附加件',
+        delivery: '港口自提',
+        totalPrice: 2849
+    };
+
+    function syncImageDispatcher() {
+        const imageCanvasNode = document.getElementById('main-product-view');
+        const colorPrefix = appState.color.toLowerCase(); 
+
+        if (appState.tipper === 'tipper') {
+            imageCanvasNode.src = `${colorPrefix}-tipper.png`;
+            return;
+        }
+
+        if (appState.addon !== 'none') {
+            imageCanvasNode.src = `${colorPrefix}-${appState.addon}.png`;
+            return;
+        }
+
+        imageCanvasNode.src = `${colorPrefix}-${appState.battery}.png`;
+    }
+
+    function triggerCoreChange(group, valId, textLabel, element) {
+        if (group === 'color') {
+            document.querySelectorAll('.color-matrix .color-wrapper').forEach(w => w.classList.remove('active'));
+            element.classList.add('active');
+        } else {
+            document.querySelectorAll(`.option-card[data-group="${group}"]`).forEach(c => c.classList.remove('remove', 'active'));
+            element.classList.add('active');
+        }
+
+        appState[group] = valId;
+        appState[`${group}Label`] = textLabel;
+        document.getElementById(`val-${group}`).innerText = textLabel;
+
+        syncImageDispatcher();
+        recalculateFinance();
+    }
+
+    function selectDeliveryLogistics(element) {
+        document.querySelectorAll('.option-card[data-group="delivery"]').forEach(c => c.classList.remove('active'));
+        element.classList.add('active');
+        
+        const isHome = element.getAttribute('data-val') === 'home';
+        appState.delivery = isHome ? '送货上门' : '港口自提';
+        document.getElementById('val-delivery').innerText = appState.delivery;
+        
+        document.getElementById('img-logistics-preview').src = element.getAttribute('data-img');
+        document.getElementById('txt-logistics-title').innerText = isHome ? '送货上门' : '港口提货';
+        document.getElementById('txt-logistics-cost').innerText = element.getAttribute('data-desc');
+
+        recalculateFinance();
+    }
+
+    function recalculateFinance() {
+        let sum = 0;
+        document.querySelectorAll('.option-card.active').forEach(activeCard => {
+            sum += parseFloat(activeCard.getAttribute('data-price') || 0);
+        });
+        
+        appState.totalPrice = CORE_BASE_PRICE + sum;
+        document.getElementById('panel-price-display').innerText = appState.totalPrice.toLocaleString();
+    }
+
+    function compileWhatsAppMsg(event) {
+        const INT_EXPORT_WHATSAPP_NUM = "8613800000000"; 
+        const rawMessage = `Hello WORXIN Canada, I customized an electric utility trike build:\n\n`
+                         + `• Color: ${appState.colorLabel}\n`
+                         + `• Battery Type: ${appState.batteryLabel}\n`
+                         + `• Bed Mechanism: ${appState.tipperLabel}\n`
+                         + `• Additional Mod: ${appState.addonLabel}\n`
+                         + `• Shipping Solution: ${appState.delivery}\n\n`
+                         + `Total Price Quote: $${appState.totalPrice.toLocaleString()} CAD.\n`
+                         + `Please reply with ocean-freight delivery schedule.`;
+        document.getElementById('lnk-whatsapp').href = `https://wa.me/${INT_EXPORT_WHATSAPP_NUM}?text=${encodeURIComponent(rawMessage)}`;
+    }
+
+    function openQuoteModal() {
+        document.getElementById('form-color').value = appState.colorLabel;
+        document.getElementById('form-battery').value = appState.batteryLabel;
+        document.getElementById('form-tipper').value = appState.tipperLabel;
+        document.getElementById('form-addon').value = appState.addonLabel;
+        document.getElementById('form-delivery').value = appState.delivery;
+        document.getElementById('form-price').value = `$${appState.totalPrice.toLocaleString()} CAD`;
+        document.getElementById('quote-modal').classList.add('open');
+    }
+    function closeQuoteModal() { document.getElementById('quote-modal').classList.remove('open'); }
+
+    function captureAndDownload() {
+        const stageDomNode = document.getElementById("export-stage");
+        html2canvas(stageDomNode, { backgroundColor: "#ffffff", useCORS: true, scale: 2 }).then(canvas => {
+            const link = document.createElement('a');
+            link.download = `WORXIN-TRIKE-BUILD.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        });
+    }
+</script>
+
+</body>
+</html>
